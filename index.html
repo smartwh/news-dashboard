@@ -1,4 +1,532 @@
-// 기본 뉴스 데이터 (API 미사용 시) - 샘플 10개 추가
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>세종 스마트시티 뉴스 대시보드</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
+      background: #f8f8f8;
+      color: #333;
+    }
+    .dashboard {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .top-section {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 32px 24px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    .welcome-title {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      letter-spacing: -0.5px;
+    }
+    .time-weather-container {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 32px;
+      align-items: start;
+    }
+    .current-time {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 20px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .time-label {
+      font-size: 13px;
+      opacity: 0.9;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .time-display {
+      font-size: 48px;
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 2px;
+    }
+    .time-date {
+      font-size: 14px;
+      opacity: 0.85;
+      margin-top: 8px;
+    }
+    .weather-info {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 20px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .weather-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .weather-icon {
+      font-size: 48px;
+      line-height: 1;
+    }
+    .weather-main {
+      flex: 1;
+    }
+    .weather-location {
+      font-size: 13px;
+      opacity: 0.9;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+    .weather-description {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .weather-temp {
+      font-size: 28px;
+      font-weight: 700;
+    }
+    .weather-details {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .weather-detail {
+      text-align: center;
+    }
+    .detail-label {
+      font-size: 11px;
+      opacity: 0.85;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .detail-value {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .header {
+      background: white;
+      padding: 24px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .header h2 {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #1a1a1a;
+    }
+    .filter-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .filter-chip {
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+      color: #666;
+    }
+    .filter-chip.active {
+      background: #0066cc;
+      color: white;
+      border-color: #0066cc;
+    }
+    .filter-chip:hover {
+      border-color: #0066cc;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+      padding: 0;
+    }
+    .stat-card {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .stat-label {
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 500;
+    }
+    .stat-value {
+      font-size: 24px;
+      font-weight: 600;
+      color: #0066cc;
+    }
+    .content {
+      padding: 0;
+    }
+    .sort-info {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: white;
+      border-radius: 8px;
+      border-left: 4px solid #0066cc;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .loading-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #0066cc;
+    }
+    .spinner {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid #0066cc;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .search-box {
+      margin-bottom: 16px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #333;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .search-input::placeholder {
+      color: #999;
+    }
+    .search-input:focus {
+      outline: none;
+      border-color: #0066cc;
+      box-shadow: 0 0 0 3px rgba(0,102,204,0.1);
+    }
+    .news-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .news-card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .news-card:hover {
+      border-color: #0066cc;
+      box-shadow: 0 4px 12px rgba(0,102,204,0.15);
+      transform: translateY(-2px);
+    }
+    .news-badge {
+      display: inline-block;
+      background: #ff6b6b;
+      color: white;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      width: fit-content;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .news-category {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      width: fit-content;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .cat-smart-city {
+      background: #e3f2fd;
+      color: #0066cc;
+    }
+    .cat-ai {
+      background: #f3e5f5;
+      color: #6b46c1;
+    }
+    .cat-gov {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    .news-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    .news-excerpt {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 12px;
+      line-height: 1.6;
+      flex-grow: 1;
+    }
+    .news-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid #eee;
+      font-size: 12px;
+      color: #999;
+    }
+    .news-source {
+      font-weight: 600;
+      color: #666;
+    }
+    .news-date {
+      color: #999;
+    }
+    .news-link {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #eee;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: #0066cc;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .news-link:hover {
+      text-decoration: underline;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 48px;
+      color: #999;
+      font-size: 14px;
+    }
+    .api-notice {
+      background: #d4edda;
+      border: 1px solid #28a745;
+      color: #155724;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+    @media (max-width: 768px) {
+      .news-grid {
+        grid-template-columns: 1fr;
+      }
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .time-weather-container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      .welcome-title {
+        font-size: 24px;
+      }
+      .time-display {
+        font-size: 36px;
+      }
+      .sort-info {
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- 상단 타이틀, 시간, 날씨 섹션 -->
+    <div class="top-section">
+      <div class="welcome-title">안녕하세요 세종스마트시티</div>
+      
+      <div class="time-weather-container">
+        <!-- 시간 -->
+        <div class="current-time">
+          <div class="time-label">현재 시간</div>
+          <div class="time-display" id="current-time">00:00:00</div>
+          <div class="time-date" id="current-date">2026년 4월 9일 수요일</div>
+        </div>
+
+        <!-- 날씨 -->
+        <div class="weather-info">
+          <div class="weather-header">
+            <div class="weather-icon" id="weather-icon">☀️</div>
+            <div class="weather-main">
+              <div class="weather-location">세종시</div>
+              <div class="weather-description" id="weather-desc">맑음</div>
+              <div class="weather-temp"><span id="weather-temp">18</span>°C</div>
+            </div>
+          </div>
+          <div class="weather-details">
+            <div class="weather-detail">
+              <div class="detail-label">일몰</div>
+              <div class="detail-value" id="sunset-time">18:45</div>
+            </div>
+            <div class="weather-detail">
+              <div class="detail-label">강수확률</div>
+              <div class="detail-value" id="rain-chance">10%</div>
+            </div>
+            <div class="weather-detail">
+              <div class="detail-label">습도</div>
+              <div class="detail-value" id="humidity">65%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- API 설정 안내 -->
+    <div class="api-notice">
+      ✅ <strong>샘플 뉴스 데이터:</strong> 세종 스마트시티 및 AI 관련 샘플 뉴스 10건이 표시되고 있습니다. 실시간 뉴스는 NewsAPI CORS 제한으로 인해 표시되지 않습니다.
+    </div>
+
+    <!-- 뉴스 섹션 헤더 -->
+    <div class="header">
+      <h2>📰 뉴스</h2>
+      <div class="filter-group">
+        <div class="filter-chip active" onclick="filterNews('all')">전체</div>
+        <div class="filter-chip" onclick="filterNews('smart-city')">🏙️ 스마트시티</div>
+        <div class="filter-chip" onclick="filterNews('sejong')">🌍 세종시</div>
+        <div class="filter-chip" onclick="filterNews('ai')">🤖 AI 동향</div>
+        <div class="filter-chip" onclick="filterNews('bidding')">💼 수주/공모</div>
+      </div>
+    </div>
+
+    <!-- 통계 -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">최근 뉴스</div>
+        <div class="stat-value" id="total-count">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">스마트시티</div>
+        <div class="stat-value" id="smart-city-count">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">AI 동향</div>
+        <div class="stat-value" id="ai-count">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">세종시</div>
+        <div class="stat-value" id="sejong-count">0</div>
+      </div>
+    </div>
+
+    <!-- 검색 -->
+    <div class="search-box">
+      <input 
+        type="text" 
+        class="search-input" 
+        id="search-input" 
+        placeholder="🔍 뉴스 검색 (제목, 내용)..."
+        onkeyup="filterBySearch()"
+      >
+    </div>
+
+    <!-- 뉴스 콘텐츠 -->
+    <div class="content">
+      <div class="sort-info" id="sort-info">
+        <span>⏰ 최신순 정렬 (샘플 데이터 표시 중)</span>
+        <span class="loading-indicator" id="loading-indicator" style="display: none;">
+          <span class="spinner"></span>
+          뉴스 로딩 중...
+        </span>
+      </div>
+      <div class="news-grid" id="news-grid">
+        <!-- 뉴스 카드가 여기에 생성됨 -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== NewsAPI 설정 =====
+    const NEWS_API_KEY = '7914a2b272c04179bda8e4e7ee8ff83f';
+
+    // 시간 업데이트
+    function updateTime() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      
+      document.getElementById('current-time').textContent = `${hours}:${minutes}:${seconds}`;
+      
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1;
+      const date = now.getDate();
+      const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+      const dayName = dayNames[now.getDay()];
+      
+      document.getElementById('current-date').textContent = `${year}년 ${month}월 ${date}일 ${dayName}`;
+    }
+
+    // 날씨 정보 업데이트
+    function updateWeather() {
+      const weatherStates = [
+        { desc: '맑음', icon: '☀️', temp: 22, sunset: '18:45', rain: 10, humidity: 55 },
+        { desc: '흐림', icon: '☁️', temp: 18, sunset: '18:45', rain: 30, humidity: 70 },
+        { desc: '구름많음', icon: '⛅', temp: 20, sunset: '18:45', rain: 20, humidity: 65 },
+      ];
+      const weather = weatherStates[0];
+      
+      document.getElementById('weather-icon').textContent = weather.icon;
+      document.getElementById('weather-desc').textContent = weather.desc;
+      document.getElementById('weather-temp').textContent = weather.temp;
+      document.getElementById('sunset-time').textContent = weather.sunset;
+      document.getElementById('rain-chance').textContent = weather.rain + '%';
+      document.getElementById('humidity').textContent = weather.humidity + '%';
+    }
+
+    // 기본 뉴스 데이터 (API 미사용 시)
     let newsData = [
       {
         id: 1,
@@ -68,4 +596,149 @@
         url: "https://www.environmentnews.kr"
       },
       {
-        id
+        id: 8,
+        title: "AI 칩 개발 기업 정부 지원금 수령",
+        excerpt: "국내 AI 칩 개발 기업들이 정부 R&D 지원금 400억원을 수령한다. 글로벌 경쟁력 강화가 기대된다.",
+        category: "ai",
+        source: "기술뉴스",
+        date: "2026-04-01",
+        url: "https://www.technews.kr"
+      },
+      {
+        id: 9,
+        title: "세종시 스마트 안전 시스템 통합",
+        excerpt: "CCTV, 화재 감시, 범죄 예방을 통합하는 AI 기반 스마트 안전 관제센터가 운영 중이다.",
+        category: "smart-city",
+        source: "안전뉴스",
+        date: "2026-03-31",
+        region: "sejong",
+        url: "https://www.safetynews.kr"
+      },
+      {
+        id: 10,
+        title: "스타트업 AI 기술 사업화 지원 사업 확대",
+        excerpt: "중소벤처기업부가 AI 스타트업을 위한 멘토링 및 투자 연계 프로그램을 확대한다.",
+        category: "ai",
+        source: "벤처뉴스",
+        date: "2026-03-30",
+        url: "https://www.venturenews.kr"
+      }
+    ];
+
+    // API 키가 존재하는지 확인 - CORS 때문에 실시간 뉴스는 불가능하므로 샘플 데이터만 사용
+    const USE_LIVE_NEWS = false; // CORS 제한으로 인해 비활성화
+
+    function initializeDashboard() {
+      updateTime();
+      updateWeather();
+      updateFilter();
+    }
+
+    // 나머지 함수들...
+    let currentFilter = 'all';
+    let displayedNews = [];
+
+    function filterNews(category) {
+      currentFilter = category;
+      updateFilter();
+    }
+
+    function filterBySearch() {
+      updateFilter();
+    }
+
+    function isRecentNews(dateStr) {
+      const newsDate = new Date(dateStr);
+      const today = new Date();
+      const threeMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 3, today.getDate());
+      return newsDate >= threeMonthsAgo;
+    }
+
+    function updateFilter() {
+      const searchTerm = document.getElementById('search-input').value.toLowerCase();
+      
+      let filtered = newsData.filter(news => {
+        const isRecent = isRecentNews(news.date);
+        const categoryMatch = currentFilter === 'all' || news.category === currentFilter;
+        const searchMatch = searchTerm === '' || 
+                           news.title.toLowerCase().includes(searchTerm) || 
+                           news.excerpt.toLowerCase().includes(searchTerm);
+        return isRecent && categoryMatch && searchMatch;
+      });
+
+      displayedNews = filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      updateChips();
+      renderNews();
+      updateStats();
+    }
+
+    function updateChips() {
+      document.querySelectorAll('.filter-chip').forEach(chip => {
+        const category = chip.getAttribute('onclick').match(/'([^']+)'/)[1];
+        chip.classList.toggle('active', category === currentFilter);
+      });
+    }
+
+    function renderNews() {
+      const grid = document.getElementById('news-grid');
+      if (displayedNews.length === 0) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;">검색 결과가 없습니다.</div>';
+        return;
+      }
+
+      grid.innerHTML = displayedNews.map((news, index) => `
+        <div class="news-card">
+          ${index === 0 ? '<div class="news-badge">최신</div>' : ''}
+          <div class="news-category ${getCategory(news.category)}">${getCategoryLabel(news.category)}</div>
+          <div class="news-title">${news.title}</div>
+          <div class="news-excerpt">${news.excerpt}</div>
+          <div class="news-meta">
+            <span class="news-source">${news.source}</span>
+            <span class="news-date">${formatFullDate(news.date)}</span>
+          </div>
+          <a href="${news.url}" target="_blank" class="news-link" onclick="event.stopPropagation();">
+            기사 보기 ↗
+          </a>
+        </div>
+      `).join('');
+    }
+
+    function updateStats() {
+      document.getElementById('total-count').textContent = displayedNews.length;
+      document.getElementById('smart-city-count').textContent = newsData.filter(n => isRecentNews(n.date) && n.category === 'smart-city').length;
+      document.getElementById('ai-count').textContent = newsData.filter(n => isRecentNews(n.date) && n.category === 'ai').length;
+      document.getElementById('sejong-count').textContent = newsData.filter(n => isRecentNews(n.date) && (n.source.includes('세종') || n.title.includes('세종'))).length;
+    }
+
+    function getCategory(cat) {
+      const map = { 'smart-city': 'cat-smart-city', 'ai': 'cat-ai', 'bidding': 'cat-gov' };
+      return map[cat] || 'cat-gov';
+    }
+
+    function getCategoryLabel(cat) {
+      const map = {
+        'smart-city': '🏙️ 스마트시티',
+        'ai': '🤖 AI 동향',
+        'bidding': '💼 수주/공모',
+        'gov': '📋 정부'
+      };
+      return map[cat] || '뉴스';
+    }
+
+    function formatFullDate(dateStr) {
+      const date = new Date(dateStr + 'T00:00:00');
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}.${month}.${day}`;
+    }
+
+    // 초기 시간과 날씨 업데이트
+    setInterval(updateTime, 1000);
+    
+    // 대시보드 초기화 (샘플 데이터 표시)
+    initializeDashboard();
+  </script>
+</body>
+</html>
